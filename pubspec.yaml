@@ -1,5 +1,5 @@
 name: text_responsive
-description: Effortlessly manage overflow for Text widgets in Flutter with the Flutter Overflow Manager package. This versatile package provides a generic solution for handling overflow, supporting both single and multiple lines of text. Customize the appearance of your text and seamlessly integrate the package into your app's design. Ensure a visually pleasing user interface by preventing both vertical and horizontal overflow. Enhance the developer experience with callbacks for overflow events. Compatible with various Flutter versions, this package simplifies the presentation of your app's textual elements, offering a straightforward solution for overflow management.
+description: Effortlessly manage overflow for Text widgets in Flutter with the Flutter Overflow Manager package. This versatile package provides a generic solution for handling overflow, supporting both single and multiple lines of text. Customize the appearance of your text and seamlessly integrate the package into your app's design. Ensure a visually pleasing user interface by preventing both vertical and horizontal overflow. Enhance the developer experience with callbacks for overflow events.
 version: 1.0.1
 homepage: https://github.com/jocaagura/text_responsive
 
