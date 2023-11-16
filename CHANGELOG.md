@@ -5,3 +5,7 @@
 ## 1.0.1
 
 * Updated homepage for package
+
+## 1.0.2
+
+* Updated readme
