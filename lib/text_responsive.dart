@@ -65,10 +65,12 @@ class TextResponsiveWidget extends StatelessWidget {
         if (textPainter.height > maxAvailableHeightSpaceToWrite ||
             textPainter.width > maxAvailableSpaceToWrite) {
           final double adjustedFontSize = calculateFontSizeToFit(
-            textPainter,
-            maxAvailableSpaceToWrite,
-            maxAvailableHeightSpaceToWrite,
-            insideFontSize,
+            text: textPainter.plainText,
+            maxLines: child.maxLines ?? 1,
+            maxWidth: maxAvailableSpaceToWrite,
+            maxHeight: maxAvailableHeightSpaceToWrite,
+            style: textStyle,
+            initialFontSize: insideFontSize,
           );
 
           overflowCallback?.call();
@@ -91,31 +93,45 @@ class TextResponsiveWidget extends StatelessWidget {
   /// This method calculates and returns the adjusted font size based on the
   /// [TextPainter] measurements and the maximum available space for both width
   /// and height.
-  double calculateFontSizeToFit(
-    TextPainter textPainter,
-    double maxWidth,
-    double maxHeight,
-    double currentFontSize,
-  ) {
-    final double scaleFactor2 = currentFontSize / textPainter.width;
-    if (textPainter.width > maxWidth) {
-      currentFontSize = maxWidth * scaleFactor2;
-    }
+  double calculateFontSizeToFit({
+    required String text,
+    required TextStyle style,
+    required double maxWidth,
+    required double maxHeight,
+    required int maxLines,
+    double initialFontSize =
+        18, // Puede ser un valor predeterminado o basado en la preferencia del usuario
+  }) {
+    double fontSize =
+        initialFontSize; // Comienza con el tamaño de la fuente inicial
+    late double
+        lastGoodFontSize; // Mantener registro del último tamaño de fuente que encajaba bien
+    bool hasOverflow = true; // Control para el bucle
 
-    final TextPainter textPainter2 = TextPainter(
-      text: TextSpan(
-        text: child.data,
-        style: child.style?.copyWith(fontSize: currentFontSize),
-      ),
-      textDirection: TextDirection.ltr,
-      maxLines: child.maxLines ?? 1,
-    );
-    textPainter2.layout(maxWidth: double.maxFinite);
+    while (hasOverflow && fontSize > 1) {
+      // Evita que la fuente sea menor a 1
+      // Configura el TextPainter
+      final TextPainter textPainter = TextPainter(
+        text: TextSpan(text: text, style: style.copyWith(fontSize: fontSize)),
+        textDirection: TextDirection.ltr,
+        maxLines: maxLines,
+      );
 
-    if (textPainter2.height > maxHeight) {
-      final double scaleFactor = currentFontSize / textPainter.height;
-      currentFontSize = maxHeight * scaleFactor;
+      // Realiza el layout del texto
+      textPainter.layout(maxWidth: maxWidth);
+
+      // Verifica si hay overflow
+      if (textPainter.width <= maxWidth &&
+          textPainter.height <= maxHeight &&
+          !textPainter.didExceedMaxLines) {
+        lastGoodFontSize =
+            fontSize; // Actualiza el último tamaño de fuente bueno
+
+        hasOverflow = false;
+      } else {
+        fontSize *= 0.99; // Reduce el tamaño de la fuente
+      }
     }
-    return currentFontSize;
+    return lastGoodFontSize; // Devuelve el último tamaño de fuente que encajaba bien
   }
 }

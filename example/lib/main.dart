@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:text_responsive/text_responsive.dart';
 
+const String paragraph =
+    'In Flutter, the adaptability of a paragraph to its container is crucial for creating responsive and user-friendly applications. This flexibility ensures that text content optimally fits within varying screen sizes and orientations, enhancing readability and user experience. By automatically adjusting to the container, the paragraph prevents overflow issues and maintains a clean, professional layout. This adaptability is especially important in a mobile-first world, where users access content on a diverse range of devices with different screen dimensions. In summary, an adaptable paragraph in Flutter is key to delivering a seamless and accessible app interface.';
+
 void main() {
   runApp(const MyApp());
 }
@@ -27,6 +30,7 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
     const Text text = Text(
       'Here we go!!!!!',
       style: TextStyle(fontSize: 60),
@@ -57,26 +61,27 @@ class MyHomePage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Text responsive demo'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      body: ListView(
+        //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           const SizedBox(
             width: double.maxFinite,
             child: Text(
-              'Fisrt case: ',
+              'Fisrt case before: ',
             ),
           ),
           Container(
             width: 50.0,
             height: 50.0,
             color: Colors.orange,
-            child: const TextResponsiveWidget(
-              child: text,
-            ),
+            child: text,
+          ),
+          const Text(
+            'Fisrt case after: ',
           ),
           Container(
             width: 500.0,
-            height: 80.0,
+            height: 50.0,
             color: Colors.orange,
             child: const TextResponsiveWidget(
               child: text,
@@ -100,6 +105,18 @@ class MyHomePage extends StatelessWidget {
             bloodTypeText: TextResponsiveWidget(child: bloodTypeText),
             ellipsisText: const TextResponsiveWidget(
               child: ellipsisText,
+            ),
+          ),
+          Container(
+            color: Colors.green,
+            width: size.width * 0.4,
+            height: size.height * 0.4,
+            child: const TextResponsiveWidget(
+              child: Text(
+                paragraph,
+                maxLines: 10,
+                style: TextStyle(fontSize: 50),
+              ),
             ),
           ),
         ],
