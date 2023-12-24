@@ -14,7 +14,7 @@
 
 * Updated description for package dart recomendation for SEO
 
-## 1.0.4
+## 1.1.0
 
 * Added new classes ParagraphTextWidget and InlineTextWidget for more specialized text handling.
 * Enhanced TextResponsiveWidget to support new text handling features.
