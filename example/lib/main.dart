@@ -107,17 +107,56 @@ class MyHomePage extends StatelessWidget {
               child: ellipsisText,
             ),
           ),
-          Container(
-            color: Colors.green,
-            width: size.width * 0.4,
-            height: size.height * 0.4,
-            child: const TextResponsiveWidget(
-              child: Text(
-                paragraph,
-                maxLines: 10,
-                style: TextStyle(fontSize: 50),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Container(
+                color: Colors.orangeAccent,
+                width: size.width * 0.4,
+                height: size.height * 0.4,
+                child: const Text(
+                  paragraph,
+                  maxLines: 10,
+                  style: TextStyle(fontSize: 50),
+                ),
               ),
-            ),
+              Container(
+                color: Colors.green,
+                width: size.width * 0.4,
+                height: size.height * 0.4,
+                child: const TextResponsiveWidget(
+                  child: Text(
+                    paragraph,
+                    maxLines: 10,
+                    style: TextStyle(fontSize: 50),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              SizedBox(
+                width: size.width * 0.4,
+                height: size.height * 0.4,
+                child: const InlineTextWidget(
+                  paragraph,
+                  style: TextStyle(fontSize: 50),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(
+                width: size.width * 0.4,
+                height: size.height * 0.4,
+                child: const ParagraphTextWidget(
+                  paragraph,
+                  maxLines: 10,
+                  textAlign: TextAlign.justify,
+                  style: TextStyle(fontSize: 50),
+                ),
+              ),
+            ],
           ),
         ],
       ),

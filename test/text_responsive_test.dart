@@ -102,4 +102,98 @@ void main() {
 
     expect(overflowCallbackCalled, true);
   });
+
+  group('ParagraphTextWidget Tests', () {
+    testWidgets('should build without exploding', (WidgetTester tester) async {
+      // Create a minimal app with the widget under test.
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: ParagraphTextWidget(
+              'Test paragraph text for size adjustment',
+              style: TextStyle(fontSize: 20),
+            ),
+          ),
+        ),
+      );
+
+      // You should check that the text widget appears and possibly that no errors are thrown.
+      expect(find.byType(ParagraphTextWidget), findsOneWidget);
+    });
+  });
+  group('ParagraphTextWidget Tests', () {
+    testWidgets('should build without exploding', (WidgetTester tester) async {
+      // Create a minimal app with the widget under test.
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: ParagraphTextWidget(
+              'Test paragraph text for size adjustment',
+              style: TextStyle(fontSize: 20),
+            ),
+          ),
+        ),
+      );
+
+      // You should check that the text widget appears and possibly that no errors are thrown.
+      expect(find.byType(ParagraphTextWidget), findsOneWidget);
+    });
+
+    testWidgets('should build without exploding', (WidgetTester tester) async {
+      // Create a minimal app with the widget under test.
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 400.0,
+              height: 400.0,
+              child: ParagraphTextWidget(
+                'Test paragraph text for size adjustment',
+                style: TextStyle(fontSize: 4),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // You should check that the text widget appears and possibly that no errors are thrown.
+      expect(find.byType(ParagraphTextWidget), findsOneWidget);
+    });
+  });
+
+  group('InlineTextWidget Tests', () {
+    testWidgets('should build without exploding', (WidgetTester tester) async {
+      // Create a minimal app with the widget under test.
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: InlineTextWidget(
+              'Test inline text for size adjustment, Test inline text for size adjustment, Test inline text for size adjustment, ',
+              //  style: TextStyle(fontSize: 20),
+            ),
+          ),
+        ),
+      );
+
+      // Check that the InlineTextWidget appears
+      expect(find.byType(InlineTextWidget), findsOneWidget);
+    });
+
+    testWidgets('should build with overflow', (WidgetTester tester) async {
+      // Create a minimal app with the widget under test.
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: InlineTextWidget(
+              'Test inline text for size adjustment,Test inline text for size adjustment,Test inline text for size adjustment,Test inline text for size adjustment,Test inline text for size adjustment,Test inline text for size adjustment,',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      );
+
+      // Check that the InlineTextWidget appears
+      expect(find.byType(InlineTextWidget), findsOneWidget);
+    });
+  });
 }

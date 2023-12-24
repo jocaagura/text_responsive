@@ -7,21 +7,35 @@ The TextResponsiveWidget is designed to handle scenarios where you want to preve
 import 'package:flutter/material.dart';
 import 'package:text_responsive/text_responsive.dart';
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
         body: Center(
-          child: const TextResponsiveWidget(
-            child: Text(
-              'Your Text Here',
-              style: TextStyle(fontSize: 20),
-            ),
-          ),
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Use ParagraphTextWidget for paragraph text
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: MediaQuery.of(context).size.height * 0.4,
+                  child: const ParagraphTextWidget(
+                    'In Flutter, the adaptability of a paragraph to its container is crucial for creating responsive and user-friendly applications. This flexibility ensures that text content optimally fits within varying screen sizes and orientations, enhancing readability and user experience. By automatically adjusting to the container, the paragraph prevents overflow issues and maintains a clean, professional layout. This adaptability is especially important in a mobile-first world, where users access content on a diverse range of devices with different screen dimensions. In summary, an adaptable paragraph in Flutter is key to delivering a seamless and accessible app interface.',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                ),
+                // Use InlineTextWidget for inline text
+                const InlineTextWidget(
+                  'Your inline text here',
+                  style: TextStyle(fontSize: 20),
+                ),
+              ]),
         ),
       ),
     );
