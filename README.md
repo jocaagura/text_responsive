@@ -2,7 +2,13 @@
 
 The TextResponsiveWidget is designed to handle scenarios where you want to prevent text overflow without explicitly setting a fixed font size. It calculates and adjusts the font size of the provided Text widget to fit within the available space defined by the parent widget.
 ### Usage
+#### TextResponsiveWidget
 
+Wrap your Text widget with TextResponsiveWidget to ensure responsive text sizing. Optionally, provide an overflowCallback to be notified when overflow is detected and the font size is adjusted.
+
+#### ParagraphTextWidget & InlineTextWidget
+
+Use these widgets for paragraph or inline text scenarios respectively. They offer the same responsive functionality with a focus on their specific text use cases.
 ```dart
 import 'package:flutter/material.dart';
 import 'package:text_responsive/text_responsive.dart';
