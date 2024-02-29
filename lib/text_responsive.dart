@@ -75,7 +75,7 @@ class TextResponsiveWidget extends StatelessWidget {
             maxHeight: maxAvailableHeightSpaceToWrite,
             style: textStyle,
             initialFontSize: insideFontSize,
-            minFontSize: minFontSize,
+            minFontSize: minFontSize.clamp(6.0, insideFontSize),
           );
 
           overflowCallback?.call();
@@ -104,7 +104,7 @@ class TextResponsiveWidget extends StatelessWidget {
     required double maxWidth,
     required double maxHeight,
     required int maxLines,
-    double minFontSize = 1.0,
+    double minFontSize = 6.0,
     double initialFontSize = 18,
   }) {
     double fontSize = initialFontSize;

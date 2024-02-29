@@ -24,3 +24,7 @@
 
 * Fixed lateInicialization error with lastGoodFontSize
 * Added minFontSize parameter for TextResponsiveWidget 
+
+## 1.2.1
+
+* we set minFontSize to 6px to make sure the legibility of the text
