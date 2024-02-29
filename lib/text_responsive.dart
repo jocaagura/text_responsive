@@ -29,6 +29,7 @@ class TextResponsiveWidget extends StatelessWidget {
   const TextResponsiveWidget({
     required this.child,
     this.overflowCallback,
+    this.minFontSize = 1.0,
     super.key,
   });
 
@@ -37,6 +38,9 @@ class TextResponsiveWidget extends StatelessWidget {
 
   /// An optional callback function called when overflow is detected.
   final void Function()? overflowCallback;
+
+  /// An optional value for min fontSize
+  final double minFontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +75,7 @@ class TextResponsiveWidget extends StatelessWidget {
             maxHeight: maxAvailableHeightSpaceToWrite,
             style: textStyle,
             initialFontSize: insideFontSize,
+            minFontSize: minFontSize,
           );
 
           overflowCallback?.call();
@@ -99,13 +104,14 @@ class TextResponsiveWidget extends StatelessWidget {
     required double maxWidth,
     required double maxHeight,
     required int maxLines,
+    double minFontSize = 1.0,
     double initialFontSize = 18,
   }) {
     double fontSize = initialFontSize;
-    late double lastGoodFontSize;
+    double lastGoodFontSize = minFontSize;
     bool hasOverflow = true;
 
-    while (hasOverflow && fontSize > 1.0) {
+    while (hasOverflow && fontSize > minFontSize) {
       final TextPainter textPainter = TextPainter(
         text: TextSpan(text: text, style: style.copyWith(fontSize: fontSize)),
         textDirection: TextDirection.ltr,

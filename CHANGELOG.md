@@ -19,3 +19,8 @@
 * Added new classes ParagraphTextWidget and InlineTextWidget for more specialized text handling.
 * Enhanced TextResponsiveWidget to support new text handling features.
 * General improvements and bug fixes.
+
+## 1.2.0
+
+* Fixed lateInicialization error with lastGoodFontSize
+* Added minFontSize parameter for TextResponsiveWidget 
