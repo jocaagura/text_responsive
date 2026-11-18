@@ -28,3 +28,12 @@
 ## 1.2.1
 
 * we set minFontSize to 6px to make sure the legibility of the text
+
+## 1.3.0
+
+* Measure text with its actual layout constraints, inherited styling, wrapping,
+  direction, and scaling while preserving accessibility labels and rich spans.
+* Preserve explicit overflow behavior and keep text at its effective minimum
+  when further shrinking is unavailable.
+* Deliver `overflowCallback` after the frame, once per continuous overflow.
+* Declare Flutter 3.16 and Dart 3.2 as the minimum SDK versions.

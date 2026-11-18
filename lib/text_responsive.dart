@@ -1,31 +1,34 @@
-import 'package:flutter/material.dart';
+import 'dart:ui' as ui show LineMetrics;
 
-/// A responsive text widget that automatically adjusts font size to fit available space.
+import 'package:flutter/widgets.dart';
+
+/// A responsive text widget that adjusts font size to fit available space.
 ///
-/// This widget calculates and adjusts the font size of the provided [Text] to fit
-/// within the available space defined by the parent widget. It's particularly useful
-/// in situations where you want to prevent text overflow without explicitly setting
-/// a fixed font size.
+/// The widget preserves the child's wrapping and line limit. It delegates to
+/// Flutter's layout when [Text.overflow] or [TextStyle.overflow] is set on the
+/// child, when rich text contains a [WidgetSpan], or when both dimensions are
+/// unbounded.
 ///
-/// Usage:
 /// ```dart
-/// const TextResponsiveWidget(
-///   child: Text(
-///     'Your Text Here',
-///     style: TextStyle(fontSize: 20),
-///   ),
-/// )
-/// ```
+/// import 'package:flutter/widgets.dart';
+/// import 'package:text_responsive/text_responsive.dart';
 ///
-/// The [TextResponsiveWidget] should be used as a direct child of a widget where
-/// you want to ensure responsive text sizing.
+/// void main() {
+///   runApp(const Directionality(
+///     textDirection: TextDirection.ltr,
+///     child: Center(
+///       child: SizedBox(
+///         width: 120,
+///         child: TextResponsiveWidget(
+///           child: Text('Hello, Flutter', maxLines: 1),
+///         ),
+///       ),
+///     ),
+///   ));
+/// }
+/// ```
 class TextResponsiveWidget extends StatelessWidget {
-  /// Creates a [TextResponsiveWidget].
-  ///
-  /// The [child] parameter is required and represents the text to be displayed.
-  ///
-  /// The [overflowCallback] is an optional callback function that is called
-  /// when overflow is detected and the font size is adjusted.
+  /// Creates a [TextResponsiveWidget] for the provided [child].
   const TextResponsiveWidget({
     required this.child,
     this.overflowCallback,
@@ -36,68 +39,47 @@ class TextResponsiveWidget extends StatelessWidget {
   /// The text to be displayed and made responsive.
   final Text child;
 
-  /// An optional callback function called when overflow is detected.
+  /// Called after the frame, once while the original size continues to overflow.
+  ///
+  /// This reports overflow detected before shrinking. The callback can safely
+  /// update widget state and can fire again after the original size fits.
   final void Function()? overflowCallback;
 
-  /// An optional value for min fontSize
+  /// The minimum unscaled base font size to try, with a floor of 6 logical pixels.
+  ///
+  /// An original base size below the floor keeps its size. For [Text.rich],
+  /// explicit span sizes shrink in proportion to the base and can fall below
+  /// this minimum.
   final double minFontSize;
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints boxConstraints) {
-        if (child.overflow != null || child.style?.overflow != null) {
-          return child;
-        }
-        final double insideFontSize = child.style?.fontSize ?? 12;
-        final TextStyle textStyle =
-            child.style?.copyWith(fontSize: insideFontSize) ??
-                TextStyle(fontSize: insideFontSize, height: 1);
+  Widget build(BuildContext context) => _ResponsiveText(configuration: this);
 
-        final TextPainter textPainter = TextPainter(
-          text: TextSpan(text: child.data, style: textStyle),
-          textDirection: TextDirection.ltr,
-          maxLines: child.maxLines ?? 1,
-        );
-
-        textPainter.layout(maxWidth: double.maxFinite);
-
-        final double maxAvailableSpaceToWrite = boxConstraints.maxWidth * 0.925;
-        final double maxAvailableHeightSpaceToWrite =
-            boxConstraints.maxHeight * 0.925;
-
-        if (textPainter.height > maxAvailableHeightSpaceToWrite ||
-            textPainter.width > maxAvailableSpaceToWrite) {
-          final double adjustedFontSize = calculateFontSizeToFit(
-            text: textPainter.plainText,
-            maxLines: child.maxLines ?? 1,
-            maxWidth: maxAvailableSpaceToWrite,
-            maxHeight: maxAvailableHeightSpaceToWrite,
-            style: textStyle,
-            initialFontSize: insideFontSize,
-            minFontSize: minFontSize.clamp(6.0, insideFontSize),
-          );
-
-          overflowCallback?.call();
-
-          return Text(
-            child.data ?? '',
-            style: textStyle.copyWith(fontSize: adjustedFontSize),
-            textAlign: child.textAlign ?? TextAlign.left,
-            maxLines: child.maxLines ?? 1,
-          );
-        }
-
-        return child;
-      },
-    );
-  }
-
-  /// Calculates the font size to fit the available space.
+  /// Calculates a fitting font size for plain text with no inherited styling.
   ///
-  /// This method calculates and returns the adjusted font size based on the
-  /// [TextPainter] measurements and the maximum available space for both width
-  /// and height.
+  /// Defaults to a minimum of 6 logical pixels. You can pass a nonnegative
+  /// [minFontSize] below 6. The effective minimum is capped at [initialFontSize]
+  /// and returned when the text cannot fit.
+  ///
+  /// ```dart
+  /// import 'package:flutter/foundation.dart';
+  /// import 'package:flutter/widgets.dart';
+  /// import 'package:text_responsive/text_responsive.dart';
+  ///
+  /// void main() {
+  ///   WidgetsFlutterBinding.ensureInitialized();
+  ///   const widget = TextResponsiveWidget(child: Text('Hello'));
+  ///   final double size = widget.calculateFontSizeToFit(
+  ///     text: 'Hello',
+  ///     style: const TextStyle(),
+  ///     maxWidth: 80,
+  ///     maxHeight: 24,
+  ///     maxLines: 1,
+  ///     minFontSize: 4,
+  ///   );
+  ///   debugPrint('Fitting size is $size');
+  /// }
+  /// ```
   double calculateFontSizeToFit({
     required String text,
     required TextStyle style,
@@ -107,31 +89,277 @@ class TextResponsiveWidget extends StatelessWidget {
     double minFontSize = 6.0,
     double initialFontSize = 18,
   }) {
-    double fontSize = initialFontSize;
-    double lastGoodFontSize = minFontSize;
-    bool hasOverflow = true;
-
-    while (hasOverflow && fontSize > minFontSize) {
-      final TextPainter textPainter = TextPainter(
-        text: TextSpan(text: text, style: style.copyWith(fontSize: fontSize)),
-        textDirection: TextDirection.ltr,
-        maxLines: maxLines,
-      );
-
-      textPainter.layout(maxWidth: maxWidth);
-
-      if (textPainter.width <= maxWidth &&
-          textPainter.height <= maxHeight &&
-          !textPainter.didExceedMaxLines) {
-        lastGoodFontSize = fontSize;
-
-        hasOverflow = false;
-      } else {
-        fontSize *= 0.99;
+    final TextPainter painter = TextPainter(
+      textDirection: TextDirection.ltr,
+      maxLines: maxLines,
+    );
+    final BoxConstraints constraints = BoxConstraints(
+      maxWidth: maxWidth,
+      maxHeight: maxHeight,
+    );
+    try {
+      final double minimumSize = minFontSize.clamp(0.0, initialFontSize);
+      bool fits(double size) {
+        painter.text =
+            TextSpan(text: text, style: style.copyWith(fontSize: size));
+        return _textFits(painter, constraints, softWrap: true);
       }
+
+      return fits(initialFontSize)
+          ? initialFontSize
+          : _findSmallerFontSize(initialFontSize, minimumSize, fits);
+    } finally {
+      painter.dispose();
     }
-    return lastGoodFontSize;
   }
+}
+
+class _ResponsiveText extends StatefulWidget {
+  const _ResponsiveText({required this.configuration});
+
+  final TextResponsiveWidget configuration;
+
+  @override
+  State<_ResponsiveText> createState() => _ResponsiveTextState();
+}
+
+class _ResponsiveTextState extends State<_ResponsiveText> {
+  bool _overflowing = false;
+  bool _callbackScheduled = false;
+  bool _overflowReported = false;
+
+  void _reportOverflow(bool overflowing) {
+    _overflowing = overflowing;
+    if (!overflowing) {
+      _overflowReported = false;
+      return;
+    }
+    if (_overflowReported ||
+        _callbackScheduled ||
+        widget.configuration.overflowCallback == null) {
+      return;
+    }
+
+    _callbackScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+      _callbackScheduled = false;
+      if (!mounted || !_overflowing) {
+        return;
+      }
+      final VoidCallback? callback = widget.configuration.overflowCallback;
+      if (callback != null) {
+        _overflowReported = true;
+        callback();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: _buildText);
+
+  Widget _buildText(BuildContext context, BoxConstraints constraints) {
+    final Text child = widget.configuration.child;
+    final InlineSpan? span = child.textSpan;
+    // Inline widgets need a render layout to determine their placeholder sizes.
+    if (child.overflow != null ||
+        child.style?.overflow != null ||
+        (!constraints.hasBoundedWidth && !constraints.hasBoundedHeight) ||
+        span?.visitChildren((InlineSpan span) => span is! PlaceholderSpan) ==
+            false) {
+      _reportOverflow(false);
+      return child;
+    }
+
+    final DefaultTextStyle defaults = DefaultTextStyle.of(context);
+    TextStyle style = child.style?.inherit == false
+        ? child.style!
+        : defaults.style.merge(child.style);
+    if (MediaQuery.boldTextOf(context)) {
+      style = style.merge(const TextStyle(fontWeight: FontWeight.bold));
+    }
+
+    final double originalSize = style.fontSize ?? 14;
+    final double minimumSize = originalSize < 6.0
+        ? originalSize
+        : widget.configuration.minFontSize.clamp(6.0, originalSize);
+    // ignore: deprecated_member_use
+    final double? scaleFactor = child.textScaleFactor;
+    final TextScaler scaler = child.textScaler ??
+        (scaleFactor == null
+            ? MediaQuery.textScalerOf(context)
+            : TextScaler.linear(scaleFactor));
+    final bool softWrap = child.softWrap ?? defaults.softWrap;
+    final TextOverflow overflow = style.overflow ?? defaults.overflow;
+    final TextPainter painter = TextPainter(
+      text: TextSpan(
+        text: child.data,
+        style: style,
+        children: span == null ? null : <InlineSpan>[span],
+      ),
+      textAlign: child.textAlign ?? defaults.textAlign ?? TextAlign.start,
+      textDirection: child.textDirection ?? Directionality.of(context),
+      locale: child.locale ?? Localizations.maybeLocaleOf(context),
+      textScaler: scaler,
+      strutStyle: child.strutStyle,
+      maxLines: child.maxLines ?? defaults.maxLines,
+      ellipsis: overflow == TextOverflow.ellipsis ? '\u2026' : null,
+      textWidthBasis: child.textWidthBasis ?? defaults.textWidthBasis,
+      textHeightBehavior: child.textHeightBehavior ??
+          defaults.textHeightBehavior ??
+          DefaultTextHeightBehavior.maybeOf(context),
+    );
+    try {
+      final bool overflowing =
+          !_textFits(painter, constraints, softWrap: softWrap);
+      _reportOverflow(overflowing);
+      if (!overflowing || minimumSize == originalSize) {
+        return child;
+      }
+
+      final double fontSize = _findSmallerFontSize(
+        originalSize,
+        minimumSize,
+        (double size) {
+          if (span == null) {
+            painter.text = TextSpan(
+              text: child.data,
+              style: style.copyWith(fontSize: size),
+            );
+          } else {
+            painter.textScaler = _FontSizeScaler(scaler, size / originalSize);
+          }
+          return _textFits(painter, constraints, softWrap: softWrap);
+        },
+      );
+      return _resizeText(context, child, fontSize, scaler, originalSize);
+    } finally {
+      painter.dispose();
+    }
+  }
+}
+
+bool _textFits(
+  TextPainter painter,
+  BoxConstraints constraints, {
+  required bool softWrap,
+}) {
+  painter.layout(
+    minWidth: constraints.minWidth,
+    maxWidth: softWrap || painter.ellipsis != null
+        ? constraints.maxWidth
+        : double.infinity,
+  );
+  return painter.height <= constraints.maxHeight &&
+      painter.width <= constraints.maxWidth &&
+      !painter.didExceedMaxLines &&
+      (!constraints.hasBoundedWidth ||
+          painter.computeLineMetrics().every(
+                (ui.LineMetrics line) => line.width <= constraints.maxWidth,
+              ));
+}
+
+double _findSmallerFontSize(
+  double initialSize,
+  double minimumSize,
+  bool Function(double) fits,
+) {
+  if (minimumSize == initialSize || !fits(minimumSize)) {
+    return minimumSize;
+  }
+
+  double lower = minimumSize;
+  double upper = initialSize;
+  for (int i = 0; i < 20 && upper - lower > 0.01; i++) {
+    final double size = lower + (upper - lower) / 2;
+    if (fits(size)) {
+      lower = size;
+    } else {
+      upper = size;
+    }
+  }
+  return lower;
+}
+
+Widget _resizeText(
+  BuildContext context,
+  Text text,
+  double size,
+  TextScaler scaler,
+  double originalSize,
+) {
+  final InlineSpan? span = text.textSpan;
+  final Text resized = span == null
+      ? Text(
+          text.data!,
+          key: text.key,
+          style: (text.style ?? const TextStyle()).copyWith(fontSize: size),
+          strutStyle: text.strutStyle,
+          textAlign: text.textAlign,
+          textDirection: text.textDirection,
+          locale: text.locale,
+          softWrap: text.softWrap,
+          overflow: text.overflow,
+          textScaler: scaler,
+          maxLines: text.maxLines,
+          semanticsLabel: text.semanticsLabel,
+          textWidthBasis: text.textWidthBasis,
+          textHeightBehavior: text.textHeightBehavior,
+          selectionColor: text.selectionColor,
+        )
+      : Text.rich(
+          span,
+          key: text.key,
+          style: text.style,
+          strutStyle: text.strutStyle,
+          textAlign: text.textAlign,
+          textDirection: text.textDirection,
+          locale: text.locale,
+          softWrap: text.softWrap,
+          overflow: text.overflow,
+          textScaler: _FontSizeScaler(scaler, size / originalSize),
+          maxLines: text.maxLines,
+          semanticsLabel: text.semanticsLabel,
+          textWidthBasis: text.textWidthBasis,
+          textHeightBehavior: text.textHeightBehavior,
+          selectionColor: text.selectionColor,
+        );
+
+  // Carry forward native semantics properties that may be newer than the
+  // minimum supported Flutter SDK, such as an accessibility identifier.
+  final Widget original = text.build(context);
+  if (original is Semantics) {
+    return Semantics.fromProperties(
+      properties: original.properties,
+      container: original.container,
+      explicitChildNodes: original.explicitChildNodes,
+      excludeSemantics:
+          original.excludeSemantics || original.child is ExcludeSemantics,
+      child: resized,
+    );
+  }
+  return resized;
+}
+
+class _FontSizeScaler extends TextScaler {
+  const _FontSizeScaler(this.scaler, this.ratio);
+
+  final TextScaler scaler;
+  final double ratio;
+
+  @override
+  double scale(double fontSize) => scaler.scale(fontSize * ratio);
+
+  @override
+  double get textScaleFactor => scale(14) / 14;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _FontSizeScaler &&
+      scaler == other.scaler &&
+      ratio == other.ratio;
+
+  @override
+  int get hashCode => Object.hash(scaler, ratio);
 }
 
 /// A widget that provides responsive text functionality for paragraph text.
@@ -271,6 +499,9 @@ class InlineTextWidget extends StatelessWidget {
       softWrap: softWrap,
       overflow: overflow,
       textScaler: textScaler,
+      maxLines: overflow == null && style?.overflow == null
+          ? DefaultTextStyle.of(context).maxLines ?? 1
+          : null,
       semanticsLabel: semanticsLabel,
       selectionColor: selectionColor,
     );

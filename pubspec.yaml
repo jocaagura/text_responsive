@@ -1,11 +1,11 @@
 name: text_responsive
 description: Effortlessly manage overflow for Text widgets in Flutter with the Flutter Overflow Manager package. This versatile package provides a generic solution for handling overflow.
-version: 1.2.1
+version: 1.3.0
 homepage: https://github.com/jocaagura/text_responsive
 
 environment:
-  sdk: '>=3.1.3 <4.0.0'
-  flutter: ">=1.17.0"
+  sdk: '>=3.2.0 <4.0.0'
+  flutter: '>=3.16.0'
 dependencies:
   flutter:
     sdk: flutter
